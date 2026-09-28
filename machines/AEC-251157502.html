@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Validation — AEC-251157502</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Geist+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold:      #B8922A;
+            --gold-lt:   #D4AF62;
+            --ink:       #1A1712;
+            --ink-2:     #3D3830;
+            --ink-3:     #6B6358;
+            --ink-4:     #9C9389;
+            --paper:     #FDFAF4;
+            --paper-2:   #F5F0E8;
+            --paper-3:   #EDE7D9;
+            --warn-bg:   #FEF8EC;
+            --warn:      #92600A;
+            --warn-bdr:  #F0C040;
+            --valid-bg:  #EAF5EE;
+            --valid:     #1A6E3A;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .corner-mark { position: fixed; width: 44px; height: 44px; opacity: .15; }
+        .corner-mark--tl { top: 20px; left: 20px; border-top: 1.5px solid var(--gold); border-left: 1.5px solid var(--gold); }
+        .corner-mark--tr { top: 20px; right: 20px; border-top: 1.5px solid var(--gold); border-right: 1.5px solid var(--gold); }
+        .corner-mark--bl { bottom: 20px; left: 20px; border-bottom: 1.5px solid var(--gold); border-left: 1.5px solid var(--gold); }
+        .corner-mark--br { bottom: 20px; right: 20px; border-bottom: 1.5px solid var(--gold); border-right: 1.5px solid var(--gold); }
+
+        .card {
+            width: 100%;
+            max-width: 560px;
+            background: white;
+            border: 1px solid var(--paper-3);
+            padding: 48px 44px;
+            position: relative;
+            animation: rise .7s cubic-bezier(.16,1,.3,1) both;
+        }
+
+        /* gold top rule */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--gold-lt), var(--gold), var(--gold-lt), transparent);
+        }
+
+        /* ── Logo ── */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 32px;
+        }
+
+        .logo-emblem {
+            width: 40px; height: 40px;
+            border: 1.5px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px; font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+
+        .logo-sub {
+            font-size: 8px; letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--ink-3); font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 32px;
+        }
+        .divider-line { flex: 1; height: 1px; background: var(--paper-3); }
+        .divider-dia  { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+        /* ── Valid seal ── */
+        .seal-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .seal {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: var(--valid-bg);
+            border: 1.5px solid rgba(26,110,58,.25);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .seal-ring {
+            position: absolute; inset: -6px;
+            border-radius: 50%;
+            border: 1px dashed rgba(26,110,58,.18);
+            animation: spin 40s linear infinite;
+        }
+
+        .seal-text-wrap { flex: 1; }
+
+        .seal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px; font-weight: 500;
+            color: var(--valid);
+            letter-spacing: .03em;
+            line-height: 1.2;
+        }
+
+        .seal-sub {
+            font-size: 10px; letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--ink-4); font-weight: 300;
+            margin-top: 3px;
+        }
+
+        /* ── Cert number badge ── */
+        .cert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--paper-2);
+            border: 1px solid var(--paper-3);
+            padding: 7px 16px;
+            margin-bottom: 28px;
+        }
+
+        .cert-badge-label {
+            font-size: 8px; letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--ink-4);
+        }
+
+        .cert-badge-num {
+            font-family: 'Geist Mono', monospace;
+            font-size: 13px; font-weight: 500;
+            color: var(--gold); letter-spacing: .06em;
+        }
+
+        /* ── Warning notice ── */
+        .notice {
+            background: var(--warn-bg);
+            border: 1px solid var(--warn-bdr);
+            padding: 18px 20px;
+            margin-bottom: 28px;
+        }
+
+        .notice-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .notice-icon {
+            width: 16px; height: 16px;
+            flex-shrink: 0;
+        }
+
+        .notice-title {
+            font-size: 10px; font-weight: 600;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--warn);
+        }
+
+        .notice-body {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 16px;
+            line-height: 1.75;
+            color: var(--ink-2);
+        }
+
+        /* ── Contact block ── */
+        .contact-block {
+            border-top: 1px solid var(--paper-3);
+            padding-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-heading {
+            font-size: 8.5px; letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--ink-4); font-weight: 400;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .contact-heading::after {
+            content: ''; flex: 1;
+            height: 1px; background: var(--paper-3);
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .contact-icon-wrap {
+            width: 36px; height: 36px;
+            background: var(--paper-2);
+            border: 1px solid var(--paper-3);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .contact-icon-wrap svg { width: 15px; height: 15px; }
+
+        .contact-label {
+            font-size: 8.5px; letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-4);
+            margin-bottom: 2px;
+        }
+
+        .contact-value {
+            font-family: 'Geist Mono', monospace;
+            font-size: 13px; font-weight: 400;
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .contact-value:hover { color: var(--gold); }
+
+        /* ── Footer timestamp ── */
+        .footer-ts {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 10px;
+            font-family: 'Geist Mono', monospace;
+            color: var(--ink-4);
+            opacity: .6;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 520px) {
+            .card { padding: 32px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="corner-mark corner-mark--tl"></div>
+<div class="corner-mark corner-mark--tr"></div>
+<div class="corner-mark corner-mark--bl"></div>
+<div class="corner-mark corner-mark--br"></div>
+
+<div class="card">
+
+    
+    <div class="logo">
+        <div class="logo-emblem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#B8922A" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="9" stroke-dasharray="2 2"/>
+                <circle cx="12" cy="12" r="5"/>
+            </svg>
+        </div>
+        <div>
+            <div class="logo-name">Arajeez</div>
+            <div class="logo-sub">Engineering Co. · Verification Portal</div>
+        </div>
+    </div>
+
+    <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-dia"></div>
+        <div class="divider-line"></div>
+    </div>
+
+    
+    <div class="seal-row">
+        <div class="seal">
+            <div class="seal-ring"></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1A6E3A" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px">
+                <path d="M20 6L9 17l-5-5"/>
+            </svg>
+        </div>
+        <div class="seal-text-wrap">
+            <div class="seal-title">Certificate Recognised</div>
+            <div class="seal-sub">Issued by Arajeez Engineering Co.</div>
+        </div>
+    </div>
+
+    
+    <div class="cert-badge">
+        <span class="cert-badge-label">Document No.</span>
+        <span class="cert-badge-num">AEC-251157502</span>
+    </div>
+
+    
+    <div class="notice">
+        <div class="notice-header">
+            <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="#92600A"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span class="notice-title">Temporary Validation Notice</span>
+        </div>
+        <div class="notice-body">
+            This certificate number is <strong>valid and was issued by Arajeez Engineering Co.</strong>
+            However, full certificate details are temporarily unavailable due to a server incident
+            that affected records in this range.<br><br>
+            We are actively restoring all affected records. To obtain a full copy of this certificate,
+            please contact us directly using the details below.
+        </div>
+    </div>
+
+    
+    <div class="contact-block">
+        <div class="contact-heading">Obtain Full Certificate</div>
+
+        <div class="contact-row">
+            <div class="contact-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#6B6358" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+            </div>
+            <div>
+                <div class="contact-label">Email</div>
+                <a href="mailto:info@arajeez-engineering.com" class="contact-value">info@arajeez-engineering.com</a>
+            </div>
+        </div>
+
+        <div class="contact-row">
+            <div class="contact-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#6B6358" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.64A2 2 0 012 .82h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="contact-label">Phone</div>
+                <a href="tel:07800140560" class="contact-value">078 0014 0560</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-ts">
+        Verified 27 Aug 2026 · 09:23 AST
+    </div>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+</html>
